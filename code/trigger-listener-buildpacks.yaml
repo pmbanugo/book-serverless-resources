@@ -1,0 +1,24 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: cicd
+spec:
+  serviceAccountName: tekton
+  triggers:
+    - name: cicd-trig
+      interceptors:
+        - ref:
+            name: "cel"
+          params:
+            - name: "filter"
+              value: "header.match('X-GitHub-Event', 'push')"
+            - name: "overlays"
+              value:
+                - key: gittruncatedsha
+                  expression: "body.head_commit.id.truncate(7)"
+                - key: gitbranch
+                  expression: "body.ref.split('/')[2]"
+      bindings:
+        - ref: build-deploy
+      template:
+        ref: buildpacks-deploy

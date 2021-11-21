@@ -1,0 +1,38 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-deploy
+spec:
+  params:
+    - name: repo-url
+    - name: revision
+      default: main
+    - name: image
+    - name: image-tag
+      default: latest
+    - name: CONTEXT
+      description: Path to the directory to use as context.
+      default: .
+    - name: service
+      description: Knative service name
+  tasks:
+    - name: build
+      taskRef:
+        name: build
+      params:
+        - name: image
+          value: $(params.image):$(params.image-tag)
+        - name: repo-url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
+        - name: CONTEXT
+          value: $(params.CONTEXT)
+    - name: deploy
+      taskRef:
+        name: deploy
+      params:
+        - name: image
+          value: $(tasks.build.results.image)
+        - name: service
+          value: $(params.service)

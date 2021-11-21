@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy
+spec:
+  params:
+    - name: service
+      description: Knative service name
+    - name: image
+      description: Path to the container image
+    - name: KN_IMAGE
+      description: kn CLI container image to run this task
+      default: gcr.io/knative-releases/knative.dev/client/cmd/kn:latest
+  steps:
+    - name: kn-apply
+      image: $(params.KN_IMAGE)
+      command: ["/ko-app/kn"]
+      args:
+        ["service", "apply", "$(params.service)", "--image", "$(params.image)"]

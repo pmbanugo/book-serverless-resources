@@ -1,0 +1,61 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: buildpacks-deploy
+spec:
+  workspaces:
+    - name: source-workspace
+    - name: cache-workspace
+  params:
+    - name: repo-url
+    - name: revision
+      default: main
+    - name: image
+    - name: service
+      description: Knative service name
+    - name: source-directory
+      description: A subpath in the directory where the source code to build is located
+      default: ""
+    - name: BUILDER_IMAGE
+      default: paketobuildpacks/builder:base
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: source-workspace
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
+        - name: subdirectory
+          value: ""
+        - name: deleteExisting
+          value: "true"
+    - name: build # This task uses `buildpacks` task to build the application
+      taskRef:
+        name: buildpacks
+      runAfter:
+        - fetch-repository
+      workspaces:
+        - name: source
+          workspace: source-workspace
+        - name: cache
+          workspace: cache-workspace
+      params:
+        - name: APP_IMAGE
+          value: $(params.image)
+        - name: SOURCE_SUBPATH
+          value: $(params.source-directory) # A path within the source input where the source to build is located
+        - name: BUILDER_IMAGE
+          value: $(params.BUILDER_IMAGE)
+    - name: deploy
+      taskRef:
+        name: deploy
+      params:
+        - name: image
+          value: $(params.image)@$(tasks.build.results.APP_IMAGE_DIGEST)
+        - name: service
+          value: $(params.service)

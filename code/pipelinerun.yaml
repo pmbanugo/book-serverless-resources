@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: build-deploy
+spec:
+  pipelineRef:
+    name: build-deploy
+  params:
+    - name: image
+      value: pmbanugo/tekton-test
+    - name: repo-url
+      value: https://github.com/pmbanugo/kn-nodejs-svc
+    - name: revision
+      value: main
+    - name: service
+      value: tekton-test
+  serviceAccountName: tekton
