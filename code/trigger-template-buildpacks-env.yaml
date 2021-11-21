@@ -1,0 +1,46 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: buildpacks-deploy-env
+spec:
+  params:
+    - name: gitrevision
+      description: The git revision
+      default: main
+    - name: gitrepositoryurl
+      description: The git repository url
+    - name: service
+    - name: sourceDirectory
+      default: ""
+    - name: env
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: buildpacks-deploy-env-run-
+      spec:
+        serviceAccountName: tekton
+        pipelineRef:
+          name: buildpacks-deploy-env
+        params:
+          - name: revision
+            value: $(tt.params.gitrevision)
+          - name: repo-url
+            value: $(tt.params.gitrepositoryurl)
+          - name: image
+            value: docker.io/pmbanugo/$(tt.params.service)
+          - name: service
+            value: $(tt.params.service)
+          - name: source-directory
+            value: $(tt.params.sourceDirectory)
+          - name: env
+            value: $(tt.params.env)
+        workspaces:
+          - name: source-workspace
+            subPath: source
+            persistentVolumeClaim:
+              claimName: tekton-workspace-pvc
+          - name: cache-workspace
+            subPath: cache
+            persistentVolumeClaim:
+              claimName: tekton-workspace-pvc

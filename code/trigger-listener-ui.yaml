@@ -1,0 +1,12 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: cicd-ui
+spec:
+  serviceAccountName: tekton
+  triggers:
+    - name: cicd-ui-trig
+      bindings:
+        - ref: buildpacks-deploy-env
+      template:
+        ref: buildpacks-deploy-env

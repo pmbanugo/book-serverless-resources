@@ -1,0 +1,16 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: buildpacks-deploy-env
+spec:
+  params:
+    - name: gitrevision
+      value: $(body.revision)
+    - name: gitrepositoryurl
+      value: $(body.repoUrl)
+    - name: sourceDirectory
+      value: $(body.sourceDirectory)
+    - name: service
+      value: "$(body.serviceName)"
+    - name: env
+      value: "$(body.environmentVariables)"

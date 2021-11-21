@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: config-map
+spec:
+  params:
+    - name: service
+    - name: env
+      description: The environment variables
+    - name: KUBECTL_IMAGE
+      description: The location of the kubectl image.
+      default: docker.io/bitnami/kubectl
+  steps:
+    - name: kubectl-apply
+      image: $(params.KUBECTL_IMAGE)
+      script: |
+
+        cat <<EOF > /tmp/config.env
+        $(params.env)
+        EOF
+
+        kubectl create configmap ksvc-$(params.service) --from-env-file=/tmp/config.env
